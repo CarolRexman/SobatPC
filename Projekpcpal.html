@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PC Smart Store</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .card {
+      border-radius: 15px;
+      transition: 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .btn-success {
+      background: #03ac0e;
+      border: none;
+    }
+
+    .btn-success:hover {
+      background: #02910c;
+    }
+
+    .rating {
+      color: orange;
+      font-size: 14px;
+    }
+
+    .cart-sidebar {
+      position: fixed;
+      right: -350px;
+      top: 0;
+      width: 320px;
+      height: 100%;
+      background: white;
+      padding: 20px;
+      box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
+      transition: 0.3s;
+      overflow: auto;
+      z-index: 1000;
+    }
+
+    .cart-sidebar.open {
+      right: 0;
+    }
+
+    .popup-ad {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      display: none;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .carousel img {
+      height: 300px;
+      object-fit: cover;
+    }
+
+    /* 🌙 DARK MODE - FIXED */
+    body.dark-mode {
+      background: #121212 !important;
+      color: #e0e0e0 !important;
+    }
+
+    body.dark-mode .card {
+      background: #1e1e1e !important;
+      color: #fff !important;
+    }
+
+    body.dark-mode .navbar {
+      background: #1a1a1a !important;
+    }
+
+    body.dark-mode .form-control,
+    body.dark-mode .form-select,
+    body.dark-mode input,
+    body.dark-mode select {
+      background: #2a2a2a !important;
+      color: #fff !important;
+      border: 1px solid #444 !important;
+    }
+
+    body.dark-mode .cart-sidebar {
+      background: #1e1e1e !important;
+      color: white !important;
+    }
+
+    body.dark-mode footer {
+      background: #000 !important;
+    }
+
+    body.dark-mode .btn-light {
+      background: #333 !important;
+      color: white !important;
+    }
+
+    body.dark-mode .container {
+      color: #e0e0e0 !important;
+    }
+
+    body.dark-mode .text-muted {
+      color: #aaa !important;
+    }
+
+    body.dark-mode .modal-content {
+      background: #1e1e1e !important;
+      color: white !important;
+    }
+
+    body.dark-mode .table {
+      color: white !important;
+      --bs-table-bg: #1e1e1e !important;
+    }
+
+    body.dark-mode .carousel-caption {
+      color: #fff !important;
+      background: rgba(0, 0, 0, 0.5) !important;
+    }
+
+    body.dark-mode .modal-header {
+      border-bottom: 1px solid #444 !important;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark shadow-sm" style="background:#03ac0e;">
+    <div class="container">
+
+      <!-- LOGO -->
+      <a class="navbar-brand fw-bold">SobatPC</a>
+
+      <!-- SEARCH BAR -->
+      <!-- SEARCH BAR -->
+      <div class="flex-grow-1 mx-3">
+        <input id="navbarSearch" type="text" class="form-control" placeholder="Searching PC, laptop, komponen..."
+          oninput="applyFilters()">
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="d-flex align-items-center gap-2">
+
+        <!-- CART -->
+        <button class="btn btn-light position-relative" onclick="toggleCart()">
+          🛒
+          <span id="cartCount" class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+            0
+          </span>
+        </button>
+
+        <button class="btn btn-light" onclick="toggleDarkMode()" id="darkToggle">
+          🌙
+        </button>
+
+      </div>
+
+    </div>
+  </nav>
+  <div id="flashSale" class="bg-danger text-white text-center py-3 mb-3">
+    <div class="container">
+      <h5>🔥 FLASH SALE - berakhir dalam <span id="countdown">2:30:45</span></h5>
+    </div>
+  </div>
+  <div id="carouselExample" class="carousel slide container mt-3" data-bs-ride="carousel">
+    <div class="carousel-inner rounded">
+      <div class="carousel-item active"> <img src="banner.png" class="d-block w-100">
+        <div class="carousel-caption">
+          <h3>Temukan laptop Atau komputer Impian anda!</h3>
+        </div>
+      </div>
+      <div class="carousel-item"> <img src="banner.png" class="d-block w-100">
+        <div class="carousel-caption">
+          <h3>Bandingkan sebelum kamu beli!</h3>
+        </div>
+      </div>
+    </div> <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon"></span> </button> <button class="carousel-control-next" type="button"
+      data-bs-target="#carouselExample" data-bs-slide="next"> <span class="carousel-control-next-icon"></span> </button>
+  </div> <!-- SEARCH -->
+  <div class="container mt-4">
+    <div class="row g-2">
+      <div class="col-md-4"><input id="search" class="form-control" placeholder="Search..."></div>
+      <div class="col-md-3"> <select id="filterType" class="form-select">
+          <option value="">All</option>
+          <option value="gaming">Gaming</option>
+          <option value="editing">Editing</option>
+          <option value="school">School</option>
+          <option value="coding">Coding</option>
+          <option value="office">Office</option>
+        </select> </div>
+      <div class="col-md-3"> <select id="sortPrice" class="form-select">
+          <option value="">Urutkan</option>
+          <option value="low">Rendah → Tinggi</option>
+          <option value="high">Tinggi → Rendah</option>
+        </select> </div>
+      <div class="col-md-2"> <button class="btn btn-success w-100" onclick="applyFilters()">Terapkan</button> </div>
+    </div>
+  </div> <!-- PRODUCTS -->
+  <div class="container py-4">
+    <div class="row g-4" id="productList"></div>
+  </div> <!-- RECOMMENDER -->
+  <div class="container py-4">
+    <h3>Smart Recommender</h3> <select id="budget" class="form-select mb-2">
+      <option value="500">Dibawah $500</option>
+      <option value="1000">Dibawah $1000</option>
+      <option value="1500">Dibawah $1500</option>
+      <option value="2000">Dibawah $2000</option>
+      <option value="3000">Budget Apapun</option>
+    </select> <select id="purpose" class="form-select mb-2">
+      <option value="gaming">Gaming</option>
+      <option value="editing">Editing</option>
+      <option value="school">School</option>
+      <option value="coding">Coding</option>
+      <option value="office">Office</option>
+    </select> <button class="btn btn-success" onclick="recommend()">Recommend</button>
+    <div id="recommendResult" class="row g-3 mt-2"></div> <!-- FPS -->
+    <div class="container py-4">
+      <h3>FPS Estimator</h3> <select id="game" class="form-select mb-2">
+        <option value="low">Valorant</option>
+        <option value="mid">GTA V</option>
+        <option value="high">Cyberpunk</option>
+      </select> <select id="fpsProduct" class="form-select mb-2"></select> <button class="btn btn-success"
+        onclick="estimateFPS()">Estimate</button>
+      <div id="fpsResult"></div>
+    </div> <!-- COMPARE -->
+    <div class="container py-4">
+      <h3>Compare</h3> <select id="c1"></select> <select id="c2"></select> <button onclick="compare()"
+        class="btn btn-success">Bandingkan!</button>
+      <div id="compareResult"></div>
+    </div> <!-- BUILDER -->
+    <div class="container py-4">
+      <h3>Build PC</h3> <select id="cpu" class="form-select mb-2">
+        <option value="120">Intel i3 10th Gen</option>
+        <option value="180">Intel i3 12th Gen</option>
+        <option value="250">Intel i5 10th Gen</option>
+        <option value="320">Intel i5 12th Gen</option>
+        <option value="380">Intel i5 13th Gen</option>
+        <option value="420">Intel i7 10th Gen</option>
+        <option value="500">Intel i7 12th Gen</option>
+        <option value="600">Intel i7 13th Gen</option>
+        <option value="700">Intel i9 13th Gen</option>
+        <option value="450">Ryzen 5 5600X</option>
+        <option value="550">Ryzen 7 5800X</option>
+        <option value="700">Ryzen 9 5900X</option>
+      </select> <select id="gpu" class="form-select mb-2">
+        <option value="80">Integrated Graphics</option>
+        <option value="200">GTX 1650</option>
+        <option value="260">GTX 1660 Super</option>
+        <option value="300">RTX 3050</option>
+        <option value="400">RTX 3060</option>
+        <option value="500">RTX 3070</option>
+        <option value="650">RTX 3080</option>
+        <option value="750">RTX 4060</option>
+        <option value="900">RTX 4070</option>
+        <option value="1100">RTX 4080</option>
+        <option value="1300">RTX 4090</option>
+      </select> <select id="ram" class="form-select mb-2">
+        <option value="60">8GB DDR4</option>
+        <option value="100">16GB DDR4</option>
+        <option value="140">16GB DDR5</option>
+        <option value="180">32GB DDR4</option>
+        <option value="220">32GB DDR5</option>
+        <option value="300">64GB DDR5</option>
+      </select> <button onclick="calc()" class="btn btn-success">Analyze</button>
+      <h4 id="total"></h4> <canvas id="buildChart" height="150"></canvas>
+    </div> <!-- OVERLAY -->
+    <div id="overlay"
+      style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);display:none;z-index:999;"
+      onclick="toggleCart()"></div> <!-- CART -->
+    <div id="cartSidebar" class="cart-sidebar">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="m-0">Cart</h4> <button class="btn btn-sm btn-danger" onclick="toggleCart()">✖</button>
+      </div>
+      <div id="cartItems"></div>
+      <hr>
+      <div id="cartSummary" class="mb-3"></div> <button class="btn btn-success w-100 mb-2"
+        onclick="openCheckout()">Checkout</button> <button class="btn btn-outline-danger w-100"
+        onclick="clearCart()">Kosongkan Keranjang</button>
+    </div> <!-- CHECKOUT MODAL -->
+    <div class="modal fade" id="checkoutModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Checkout</h5> <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body"> <input class="form-control mb-2" placeholder="Full Name"> <input
+              class="form-control mb-2" placeholder="Address"> <input class="form-control mb-2" placeholder="Phone">
+            <select class="form-select mb-3">
+              <option>Bank Transfer</option>
+              <option>E-Wallet</option>
+              <option>COD</option>
+            </select>
+            <div id="checkoutSummary"></div>
+          </div>
+          <div class="modal-footer"> <button class="btn btn-success w-100" onclick="confirmCheckout()">Pay Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+  </div>
+
+  <footer class="bg-dark text-white mt-5">
+    <div class="container py-4">
+      <div class="row">
+
+        <!-- BRAND -->
+        <div class="col-md-4 mb-3">
+          <h5 class="fw-bold">SobatPC</h5>
+          <p class="small text-muted">
+            Destinasi pintar untuk PCs, laptops, dan komponen anda.
+            Bandingkan, Bikin, dan belanjar lebih cermat.
+          </p>
+        </div>
+
+        <!-- LINKS -->
+        <div class="col-md-4 mb-3">
+          <h6 class="fw-bold">Link cepat</h6>
+          <ul class="list-unstyled small">
+            <li><a href="#" class="text-decoration-none text-light">Home</a></li>
+            <li><a href="#" class="text-decoration-none text-light">Products</a></li>
+            <li><a href="#" class="text-decoration-none text-light">Buat PC</a></li>
+            <li><a href="#" class="text-decoration-none text-light">Bandingkan</a></li>
+          </ul>
+        </div>
+
+        <!-- CONTACT -->
+        <div class="col-md-4 mb-3">
+          <h6 class="fw-bold">Contact</h6>
+          <p class="small mb-1">📧 support@sobatPC.com</p>
+          <p class="small mb-1">📱 +62 85652046440</p>
+          <p class="small"> SMA Islam Sabilillah Malang Boarding School Sistem Pesantren</p>
+          <p class="small"> Jl. Terusan Piranha Atas No.1 B, Tunjungsekar, Kec. Lowokwaru, Kota Malang, Jawa Timur 65142
+          </p>
+
+        </div>
+
+      </div>
+
+      <hr class="border-secondary">
+
+      <div class="row text-center text-white mb-3">
+        <div class="col">
+          <h3>0,00</h3><small>Product Terjual se-Indonesia!</small>
+        </div>
+        <div class="col">
+          <h3>1</h3><small>Customer yang senang</small>
+        </div>
+        <div class="col">
+          <h3>9.8⭐</h3><small>Rating</small>
+        </div>
+      </div>
+
+      <!-- BOTTOM -->
+      <div class="text-center small">
+        ©2026 AndiFaz CORP — All Rights Reserved
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+
+
+
+    const productList = document.getElementById("productList");
+    const search = document.getElementById("search");
+    const filterType = document.getElementById("filterType");
+    const sortPrice = document.getElementById("sortPrice");
+
+    const recommendResult = document.getElementById("recommendResult");
+    const budget = document.getElementById("budget");
+    const purpose = document.getElementById("purpose");
+
+    const fpsProduct = document.getElementById("fpsProduct");
+    const game = document.getElementById("game");
+    const fpsResult = document.getElementById("fpsResult");
+
+    const c1 = document.getElementById("c1");
+    const c2 = document.getElementById("c2");
+    const compareResult = document.getElementById("compareResult");
+
+    const cpu = document.getElementById("cpu");
+    const gpu = document.getElementById("gpu");
+    const ram = document.getElementById("ram");
+    const total = document.getElementById("total");
+    const buildChart = document.getElementById("buildChart");
+
+    const cartItems = document.getElementById("cartItems");
+    const cartSummary = document.getElementById("cartSummary");
+    const cartCount = document.getElementById("cartCount");
+
+    const cartSidebar = document.getElementById("cartSidebar");
+    const overlay = document.getElementById("overlay");
+
+    const checkoutModal = document.getElementById("checkoutModal");
+    const checkoutSummary = document.getElementById("checkoutSummary");
+    const products = [
+      {
+        n: "RTX 4090 PC", p: 2500, d: 10, s: 120, t: "gaming", cpu: "i9", gpu: "RTX4090", ram: "32GB", rating: 4.9,
+        gpuTier: 3, cpuTier: 3, img: "images/download (1).png"
+      },
+      {
+        n: "RTX 4080 PC", p: 2000, d: 15, s: 98, t: "gaming", cpu: "i7", gpu: "RTX4080", ram: "32GB", rating: 4.8,
+        gpuTier: 3, cpuTier: 3, img: "images/download (2).png"
+      },
+      {
+        n: "RTX 4070 PC", p: 1500, d: 12, s: 140, t: "gaming", cpu: "i7", gpu: "RTX4070", ram: "16GB", rating: 4.7,
+        gpuTier: 2, cpuTier: 2, img: "images/download (3).png"
+      },
+      {
+        n: "RTX 4060 PC", p: 900, d: 8, s: 200, t: "gaming", cpu: "i5", gpu: "RTX4060", ram: "16GB", rating: 4.6, gpuTier:
+          2, cpuTier: 2, img: "images/download (4).png"
+      },
+      {
+        n: "Ryzen 9 Creator", p: 2200, d: 10, s: 80, t: "editing", cpu: "Ryzen9", gpu: "RTX4080", ram: "32GB", rating:
+          4.9, gpuTier: 3, cpuTier: 3, img: "images/download (5).png"
+      },
+      {
+        n: "i9 Workstation", p: 2100, d: 9, s: 75, t: "editing", cpu: "i9", gpu: "RTX4070", ram: "32GB", rating: 4.8,
+        gpuTier: 2, cpuTier: 3, img: "images/download (6).png"
+      },
+      {
+        n: "Editing Laptop", p: 1800, d: 11, s: 65, t: "editing", cpu: "i7", gpu: "RTX4060", ram: "16GB", rating: 4.7,
+        gpuTier: 2, cpuTier: 2, img: "images/download (7).png"
+      },
+      {
+        n: "Student Laptop", p: 500, d: 5, s: 300, t: "school", cpu: "i3", gpu: "Integrated", ram: "8GB", rating: 4.3,
+        gpuTier: 1, cpuTier: 1, img: "images/download (8).png"
+      },
+      {
+        n: "Office Laptop", p: 650, d: 6, s: 250, t: "office", cpu: "i5", gpu: "Integrated", ram: "8GB", rating: 4.4,
+        gpuTier: 1, cpuTier: 2, img: "images/download (9).png"
+      },
+      {
+        n: "Coding Laptop", p: 1200, d: 10, s: 110, t: "coding", cpu: "i7", gpu: "RTX3050", ram: "16GB", rating: 4.6,
+        gpuTier: 2, cpuTier: 2, img: "images/download (10).png"
+      },
+      {
+        n: "Mini PC", p: 700, d: 7, s: 130, t: "office", cpu: "i5", gpu: "Integrated", ram: "16GB", rating: 4.5, gpuTier:
+          1, cpuTier: 2, img: "images/download (11).png"
+      },
+      {
+        n: "Gaming Laptop 4060", p: 1400, d: 13, s: 170, t: "gaming", cpu: "i7", gpu: "RTX4060", ram: "16GB", rating: 4.7,
+        gpuTier: 2, cpuTier: 2, img: "images/download (12).png"
+      },
+      {
+        n: "Gaming Laptop 4050", p: 1100, d: 9, s: 190, t: "gaming", cpu: "i5", gpu: "RTX4050", ram: "16GB", rating: 4.6,
+        gpuTier: 2, cpuTier: 2, img: "images/download (13).png"
+      },
+      {
+        n: "Mac Style Laptop", p: 1600, d: 8, s: 95, t: "coding", cpu: "M2", gpu: "Integrated", ram: "16GB", rating: 4.8,
+        gpuTier: 1, cpuTier: 3, img: "images/download (14).png"
+      },
+      {
+        n: "Budget PC", p: 400, d: 5, s: 310, t: "office", cpu: "i3", gpu: "Integrated", ram: "8GB", rating: 4.2, gpuTier:
+          1, cpuTier: 1, img: "images/download (15).png"
+      },
+      {
+        n: "Mid Gaming PC", p: 1300, d: 10, s: 150, t: "gaming", cpu: "i7", gpu: "RTX4060", ram: "16GB", rating: 4.7,
+        gpuTier: 2, cpuTier: 2, img: "images/download (16).png"
+      }
+    ];
+    /* ===== INIT SELECT OPTIONS ===== */
+    products.forEach((p, i) => {
+      fpsProduct.innerHTML += `<option value="${i}">${p.n}</option>`;
+      c1.innerHTML += `<option value="${i}">${p.n}</option>`;
+      c2.innerHTML += `<option value="${i}">${p.n}</option>`;
+    });
+
+    /* ===== RENDER PRODUCTS ===== */
+    function renderProducts(list) {
+      productList.innerHTML = "";
+
+      list.forEach((p, i) => {
+        const price = Math.round(p.p * (1 - p.d / 100));
+
+        productList.innerHTML += `
+    <div class="col-lg-3 col-md-4 col-sm-6">
+      <div class="card h-100 shadow-sm">
+        <img src="${p.img}" class="card-img-top product-img">
+        <div class="card-body d-flex flex-column">
+          <h6>${p.n}</h6>
+          <small class="text-muted">${p.s} Terjual</small>
+          <div class="rating">⭐ ${p.rating}</div>
+
+          <div>
+            <b>$${price}</b>
+            <small class="text-muted text-decoration-line-through">$${p.p}</small>
+          </div>
+
+          <div class="small text-muted mb-2">
+            ${p.cpu} • ${p.gpu} • ${p.ram}
+          </div>
+
+          <button class="btn btn-success mt-auto w-100" onclick="addToCart(${i})">
+            + Tambahkan ke keranjang
+          </button>
+        </div>
+      </div>
+    </div>
+    `;
+      });
+    }
+
+    /* ===== FILTER / SEARCH / SORT ===== */
+    function applyFilters() {
+      const text = (search.value + ' ' + document.getElementById('navbarSearch').value).toLowerCase();
+      const type = filterType.value;
+
+      let filtered = products.filter(p =>
+        p.n.toLowerCase().includes(text) &&
+        (type === "" || p.t === type)
+      );
+
+      if (sortPrice.value === "low") {
+        filtered.sort((a, b) => a.p - b.p);
+      } else if (sortPrice.value === "high") {
+        filtered.sort((a, b) => b.p - a.p);
+      }
+
+      renderProducts(filtered);
+    }
+
+    function startCountdown() {
+      let time = 10800; // 3 hours
+      setInterval(() => {
+        let h = Math.floor(time / 3600);
+        let m = Math.floor((time % 3600) / 60);
+        let s = time % 60;
+        document.getElementById('countdown').textContent =
+          `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        time--;
+      }, 1000);
+    }
+
+    /* ===== RECOMMENDER ===== */
+    function recommend() {
+      const b = +budget.value;
+      const p = purpose.value;
+
+      const results = products
+        .filter(x => x.p <= b && x.t === p).sort((a, b) => b.rating - a.rating)
+        .slice(0, 3);
+
+      recommendResult.innerHTML = "";
+
+      if (results.length === 0) {
+        recommendResult.innerHTML = "<p>No match found</p>";
+        return;
+      }
+
+      results.forEach((res, i) => {
+        const price = Math.round(res.p * (1 - res.d / 100));
+
+        recommendResult.innerHTML += `
+      <div class="col-md-4">
+        <div class="card p-2 h-100 shadow-sm">
+          <img src="${res.img}" class="card-img-top product-img">
+          <div class="card-body d-flex flex-column">
+            <h6>${res.n}</h6>
+
+            <div class="small text-muted">
+              ${res.cpu} • ${res.gpu} • ${res.ram}
+            </div>
+
+            <div class="rating mb-1">⭐ ${res.rating}</div>
+
+            <div>
+              <b>$${price}</b>
+              <small class="text-muted text-decoration-line-through">$${res.p}</small>
+            </div>
+
+            <button class="btn btn-success mt-auto" onclick="addToCart(${products.indexOf(res)})">
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
+      `;
+      });
+    }
+
+    /* ===== FPS ESTIMATOR ===== */
+    function estimateFPS() {
+      const p = products[fpsProduct.value];
+      const gameLevel = game.value;
+
+      let score = (p.gpuTier * 70) + (p.cpuTier * 50);
+
+      if (gameLevel === "high") score *= 0.5;
+      if (gameLevel === "mid") score *= 0.7;
+
+      const fps = Math.round(score);
+
+      let label = "Playable";
+      if (fps > 100) label = "Smooth";
+      else if (fps > 60) label = "Good";
+      else if (fps < 40) label = "Low"; fpsResult.innerHTML = `
+  <div class="card p-3 mt-2">
+    <h5>${p.n}</h5>
+    <p><b>${label}</b> performance</p>
+    <p>Estimated FPS: ${fps}</p>
+    <small>${p.cpu} + ${p.gpu}</small>
+  </div>
+`;
+    }
+
+    /* ===== COMPARE ===== */
+    function compare() {
+      const a = products[c1.value];
+      const b = products[c2.value];
+
+      compareResult.innerHTML = `
+  <table class="table table-bordered mt-3">
+    <tr>
+      <th>Spec</th>
+      <th>${a.n}</th>
+      <th>${b.n}</th>
+    </tr>
+    <tr>
+      <td>CPU</td>
+      <td>${a.cpu}</td>
+      <td>${b.cpu}</td>
+    </tr>
+    <tr>
+      <td>GPU</td>
+      <td>${a.gpu}</td>
+      <td>${b.gpu}</td>
+    </tr>
+    <tr>
+      <td>RAM</td>
+      <td>${a.ram}</td>
+      <td>${b.ram}</td>
+    </tr>
+    <tr>
+      <td>Price</td>
+      <td>$${a.p}</td>
+      <td>$${b.p}</td>
+    </tr>
+    <tr>
+      <td>Rating</td>
+      <td>${a.rating}</td>
+      <td>${b.rating}</td>
+    </tr>
+  </table>
+  `;
+    }
+
+    /* ===== BUILD PC ===== */
+    let chart;
+
+    function calc() {
+      const cpuVal = +cpu.value;
+      const gpuVal = +gpu.value;
+      const ramVal = +ram.value;
+
+      const totalPrice = cpuVal + gpuVal + ramVal;
+
+      const cpuScore = cpuVal / 100;
+      const gpuScore = gpuVal / 100;
+      const ramScore = ramVal / 80;
+
+      const totalScore =
+        (cpuScore * 0.35) +
+        (gpuScore * 0.45) +
+        (ramScore * 0.20);
+
+      const tier =
+        totalScore > 8 ? "🔥 High-End" :
+          totalScore > 5 ? "⚡ Mid-Range" :
+            "💻 Entry-Level";
+
+      total.innerHTML = `
+  <b>Total Price:</b> $${totalPrice}<br>
+  <b>Tier:</b> ${tier}
+  `;
+
+      if (chart) chart.destroy();
+
+      chart = new Chart(buildChart.getContext("2d"), {
+        type: "pie",
+        data: {
+          labels: ["CPU", "GPU", "RAM"],
+          datasets: [{
+            data: [cpuScore, gpuScore, ramScore]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: "bottom" }
+          }
+        }
+      });
+    }
+
+    /* ===== CART ===== */
+    let cart = [];
+
+    function addToCart(i) {
+      const found = cart.find(x => x.n === products[i].n);
+
+      if (found) found.qty++;
+      else cart.push({ ...products[i], qty: 1 });
+
+      renderCart();
+    }
+
+    function renderCart() {
+      let html = "";
+      let total = 0;
+      let items = 0;
+
+      cart.forEach((c, i) => {
+        const price = Math.round(c.p * (1 - c.d / 100));
+        const sub = price * c.qty;
+
+        total += sub;
+        items += c.qty;
+
+        html += `
+  <div class="card mb-2 p-2">
+    <div class="d-flex">
+      <img src="${c.img}" style="width:60px;height:60px;border-radius:8px;">
+
+      <div class="ms-2 w-100">
+        <div class="d-flex justify-content-between">
+          <strong>${c.n}</strong>
+          <button class="btn btn-sm btn-outline-danger" onclick="removeItem(${i})">✕</button>
+        </div>
+
+        <small>$${price} each</small>
+
+        <div class="d-flex align-items-center mt-1">
+          <button class="btn btn-sm btn-light" onclick="decreaseQty(${i})">−</button>
+          <span class="mx-2">${c.qty}</span>
+          <button class="btn btn-sm btn-light" onclick="increaseQty(${i})">+</button>
+        </div>
+
+        <small>Subtotal: $${sub}</small>
+      </div>
+    </div>
+  </div>
+  `;
+      });
+
+      cartItems.innerHTML = html || "<p>Cart empty</p>";
+
+      cartSummary.innerHTML = `
+  <div class="d-flex justify-content-between">
+    <span>Items</span><b>${items}</b>
+  </div>
+  <div class="d-flex justify-content-between">
+    <span>Total</span><b>$${total}</b>
+  </div>
+  `;
+
+      cartCount.innerText = items;
+    }
+
+    /* ===== CART CONTROLS ===== */
+    const increaseQty = i => { cart[i].qty++; renderCart(); };
+    const decreaseQty = i => {
+      cart[i].qty--;
+      if (cart[i].qty <= 0) cart.splice(i, 1); renderCart();
+    }; const removeItem = i => { cart.splice(i, 1); renderCart(); };
+    const clearCart = () => { cart = []; renderCart(); };
+
+    /* ===== CHECKOUT ===== */
+    function openCheckout() {
+      if (cart.length === 0) {
+        alert("Cart empty");
+        return;
+      }
+
+      let total = 0;
+      cart.forEach(c => {
+        const price = Math.round(c.p * (1 - c.d / 100));
+        total += price * c.qty;
+      });
+
+      checkoutSummary.innerHTML = `<b>Total: $${total}</b>`;
+      new bootstrap.Modal(checkoutModal).show();
+    }
+
+    function confirmCheckout() {
+      alert("Payment Successful!");
+      clearCart();
+      bootstrap.Modal.getInstance(checkoutModal).hide();
+    }
+
+    /* ===== UI ===== */
+    function toggleCart() {
+      const isOpen = cartSidebar.classList.contains("open");
+      cartSidebar.classList.toggle("open");
+      overlay.style.display = isOpen ? "none" : "block";
+    }
+
+    setTimeout(() => {
+      popupAd.style.display = "block";
+    }, 2000);
+
+    if (localStorage.getItem("darkMode") === "true") {
+      document.body.classList.add("dark-mode");
+    }
+
+    /* ===== INIT ===== */
+    renderProducts(products);
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+
+      const isDark = document.body.classList.contains("dark-mode");
+      localStorage.setItem("darkMode", isDark);
+
+      document.getElementById("darkToggle").innerText = isDark ? "☀️" : "🌙";
+    }
+
+    // set icon on load
+    if (localStorage.getItem("darkMode") === "true") {
+      document.body.classList.add("dark-mode");
+      document.getElementById("darkToggle").innerText = "☀️";
+    }
+
+    // START FLASH SALE COUNTDOWN
+    startCountdown();
+  </script>
+
+
+
+
+
+</body>
+
+</html>
